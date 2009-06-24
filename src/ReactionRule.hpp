@@ -42,6 +42,11 @@ public:
             friend class const_iterator;
             friend class boost::iterator_core_access;
 
+            std::ptrdiff_t distance_to(iterator const& that)
+            {
+                return idx_ - that.idx_;
+            }
+
             bool equal(iterator const& that) const
             {
                 return &cntnr_ == &that.cntnr_ && idx_ == that.idx_;
@@ -74,6 +79,11 @@ public:
         {
             friend class iterator;
             friend class boost::iterator_core_access;
+
+            std::ptrdiff_t distance_to(iterator const& that)
+            {
+                return idx_ - that.idx_;
+            }
 
             bool equal(const_iterator const& that) const
             {
