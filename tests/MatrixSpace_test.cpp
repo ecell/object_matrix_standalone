@@ -1,4 +1,4 @@
-#define BOOST_TEST_MODULE "object_container_test"
+#define BOOST_TEST_MODULE "MatrixSpace_test"
 
 #include <functional>
 #include <iostream>
@@ -6,12 +6,12 @@
 #include <set>
 #include <boost/test/included/unit_test.hpp>
 #include <boost/test/floating_point_comparison.hpp>
-#include "sphere.hpp"
-#include "object_container.hpp"
+#include "Sphere.hpp"
+#include "MatrixSpace.hpp"
 
 BOOST_AUTO_TEST_CASE(update)
 {
-    typedef object_container<sphere<double>, int> oc_type;
+    typedef MatrixSpace<Sphere<double>, int> oc_type;
     typedef oc_type::position_type pos;
     oc_type oc(1.0, 10);
     BOOST_CHECK_CLOSE(0.1, oc.cell_size(), 0.001);
@@ -73,7 +73,7 @@ struct collector2
 
 BOOST_AUTO_TEST_CASE(each_neighbor)
 {
-    typedef object_container<sphere<double>, int> oc_type;
+    typedef MatrixSpace<Sphere<double>, int> oc_type;
     typedef oc_type::position_type pos;
     oc_type oc(1.0, 10);
     BOOST_CHECK_CLOSE(0.1, oc.cell_size(), 0.001);
@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE(each_neighbor)
 
 BOOST_AUTO_TEST_CASE(reupdate)
 {
-    typedef object_container<sphere<double>, int> oc_type;
+    typedef MatrixSpace<Sphere<double>, int> oc_type;
     typedef oc_type::position_type pos;
     oc_type oc(1.0, 10);
     BOOST_CHECK_CLOSE(0.1, oc.cell_size(), 0.001);
@@ -191,7 +191,7 @@ struct collector4
 
 BOOST_AUTO_TEST_CASE(each_neighbor2)
 {
-    typedef object_container<sphere<double>, int> oc_type;
+    typedef MatrixSpace<Sphere<double>, int> oc_type;
     typedef oc_type::position_type pos;
 
     for (double r = 0.01; r < 0.1; r += 0.01)
@@ -209,9 +209,9 @@ BOOST_AUTO_TEST_CASE(each_neighbor2)
             {
                 double t1(M_PI * 2 * (i % 10) / 10.), t2(M_PI * 2 * (i / 10) / 10.);
                 const double _x = cos(t1) * r;
-                const pos p(centre.x() + _x * cos(t2),
-                            centre.y() + sin(t1) * r,
-                            centre.z() + _x * sin(t2));
+                const pos p(centre[0] + _x * cos(t2),
+                            centre[1] + sin(t1) * r,
+                            centre[2] + _x * sin(t2));
                 oc.update(std::make_pair(i, oc_type::mapped_type(p, r)));
 
 
@@ -238,9 +238,9 @@ BOOST_AUTO_TEST_CASE(each_neighbor2)
             {
                 double t1(M_PI * 2 * (i % 10) / 10.), t2(M_PI * 2 * (i / 10) / 10.);
                 const double _x = cos(t1) * r;
-                const pos p(centre.x() + _x * cos(t2),
-                            centre.y() + sin(t1) * r,
-                            centre.z() + _x * sin(t2));
+                const pos p(centre[0] + _x * cos(t2),
+                            centre[1] + sin(t1) * r,
+                            centre[2] + _x * sin(t2));
                 oc.update(std::make_pair(i, oc_type::mapped_type(p, r)));
 
 

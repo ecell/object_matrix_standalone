@@ -1,5 +1,5 @@
-#ifndef OBJECTMATRIX_PEER_OBJECTCONTAINER_HPP
-#define OBJECTMATRIX_PEER_OBJECTCONTAINER_HPP
+#ifndef OBJECTMATRIX_PEER_MATRIXSPACE_HPP
+#define OBJECTMATRIX_PEER_MATRIXSPACE_HPP
 
 #include <functional>
 #include <string>
@@ -25,17 +25,9 @@
 #include "peer/numpy/pyarray_backed_allocator.hpp"
 #include "peer/numpy/ndarray_converters.hpp"
 
-#include "position.hpp"
-#include "sphere.hpp"
 #include "filters.hpp"
 
 #include "get_mapper_mf.hpp"
-
-#if OBJECTMATRIX_USE_ITERATOR
-#include <boost/coroutine/generator.hpp>
-#include <boost/bind.hpp>
-#include "peer/generator_support.hpp"
-#endif /* OBJECTMATRIX_USE_ITERATOR */
 
 template<typename Tval_>
 struct get_mapper_mf<boost::python::object, Tval_>
@@ -67,7 +59,7 @@ struct get_mapper_mf<boost::python::object, Tval_>
 
 namespace peer {
 
-struct ObjectContainerBase
+struct MatrixSpaceBase
 {
     template<typename T_, typename Tref_>
     struct add_const_if:
@@ -91,7 +83,7 @@ struct ObjectContainerBase
 };
 
 template<typename Timpl_>
-class ObjectContainer: public ObjectContainerBase
+class MatrixSpace: public MatrixSpaceBase
 {
 public:
     typedef Timpl_ impl_type;
@@ -155,7 +147,7 @@ public:
             {
                 //sa_.push_back(i);
                 ka_.push_back((*i).first);
-                da_.push_back(pos_.distance((*i).second.position()) 
+                da_.push_back(distance(pos_, (*i).second.position()) 
                               - (*i).second.radius());
 
             }
@@ -165,7 +157,7 @@ public:
             {
                 //sa_.push_back(i);
                 ka_.push_back((*i).first);
-                da_.push_back(pos_.distance((*i).second.position() + d)
+                da_.push_back(distance(pos_, (*i).second.position() + d)
                               - (*i).second.radius());
             }
 
@@ -179,8 +171,8 @@ public:
     public:
         inline static void
         build_neighbors_array(result_type& retval,
-                              ObjectContainer& cntnr,
-                              const ::sphere<length_type>& sphere)
+                              MatrixSpace& cntnr,
+                              const ::Sphere<length_type>& sphere)
         {
             collector col(retval);
             take_neighbor(cntnr.impl_, col, sphere);
@@ -188,7 +180,7 @@ public:
 
         inline static void
         build_neighbors_array_cyclic(result_type& retval,
-                ObjectContainer& cntnr, const ::sphere<length_type>& sphere)
+                MatrixSpace& cntnr, const ::Sphere<length_type>& sphere)
         {
             collector col(retval);
             take_neighbor_cyclic(cntnr.impl_, col, sphere);
@@ -196,7 +188,7 @@ public:
 
         inline static void
         build_all_neighbors_array(result_type& retval,
-                ObjectContainer& cntnr, const position_type& pos)
+                MatrixSpace& cntnr, const position_type& pos)
         {
             all_neighbors_collector col(retval, pos);
             cntnr.impl_.each_neighbor(cntnr.impl_.index(pos), col);
@@ -204,7 +196,7 @@ public:
 
         inline static void
         build_all_neighbors_array_cyclic(result_type& retval,
-                ObjectContainer& cntnr, const position_type& pos)
+                MatrixSpace& cntnr, const position_type& pos)
         {
             all_neighbors_collector col(retval, pos);
             cntnr.impl_.each_neighbor_cyclic(cntnr.impl_.index(pos), col);
@@ -215,7 +207,7 @@ public:
     };
 
 public:
-    ObjectContainer(typename impl_type::length_type world_size,
+    MatrixSpace(typename impl_type::length_type world_size,
             typename impl_type::matrix_type::size_type size)
             : impl_(world_size, size) {}
 
@@ -280,7 +272,7 @@ public:
                 typename boost::tuples::element<0, typename Builders::result_type>::type(),
                 typename boost::tuples::element<1, typename Builders::result_type>::type(alloc)));
         Builders::build_neighbors_array_cyclic(*retval, *this,
-                ::sphere<length_type>( pos, radius ) );
+                ::Sphere<length_type>( pos, radius ) );
 
         // take over the ownership of the arrays to the Numpy facility
         alloc.giveup_ownership();
@@ -351,26 +343,26 @@ public:
 
         util::register_tuple_converter<typename Builders::result_type>();
 
-        class_<ObjectContainer>(class_name, init<length_type, size_type>())
-            .add_property("cellSize", &ObjectContainer::getCellSize)
-            .add_property("worldSize", &ObjectContainer::getWorldSize)
-            .add_property("matrixSize", &ObjectContainer::getMatrixSize)
-            .def("getNeighborsWithinRadiusNoSort", &ObjectContainer::getNeighborsWithinRadiusNoSort)
-            .def("getNeighborsCyclicNoSort", &ObjectContainer::getNeighborsCyclicNoSort)
-            .def("getNeighborsNoSort", &ObjectContainer::getNeighborsCyclicNoSort)
-            .def("__len__", &ObjectContainer::__len__)
+        class_<MatrixSpace>(class_name, init<length_type, size_type>())
+            .add_property("cellSize", &MatrixSpace::getCellSize)
+            .add_property("worldSize", &MatrixSpace::getWorldSize)
+            .add_property("matrixSize", &MatrixSpace::getMatrixSize)
+            .def("getNeighborsWithinRadiusNoSort", &MatrixSpace::getNeighborsWithinRadiusNoSort)
+            .def("getNeighborsCyclicNoSort", &MatrixSpace::getNeighborsCyclicNoSort)
+            .def("getNeighborsNoSort", &MatrixSpace::getNeighborsCyclicNoSort)
+            .def("__len__", &MatrixSpace::__len__)
             .def("__iter__", range(
-                    &ObjectContainer::__iter__begin,
-                    &ObjectContainer::__iter__end))
+                    &MatrixSpace::__iter__begin,
+                    &MatrixSpace::__iter__end))
             .def("iterkeys", range(
-                    &ObjectContainer::iterkeys_begin,
-                    &ObjectContainer::iterkeys_end))
-            .def("contains", &ObjectContainer::contains)
-            .def("__setitem__", &ObjectContainer::__setitem__)
-            .def("__getitem__", &ObjectContainer::__getitem__,
+                    &MatrixSpace::iterkeys_begin,
+                    &MatrixSpace::iterkeys_end))
+            .def("contains", &MatrixSpace::contains)
+            .def("__setitem__", &MatrixSpace::__setitem__)
+            .def("__getitem__", &MatrixSpace::__getitem__,
                     return_value_policy<copy_const_reference>())
-            .def("__delitem__", &ObjectContainer::__delitem__)
-            .def("check", &ObjectContainer::check)
+            .def("__delitem__", &MatrixSpace::__delitem__)
+            .def("check", &MatrixSpace::check)
             ;
     }
 
@@ -380,4 +372,4 @@ private:
 
 } // namespace peer
 
-#endif /* OBJECTMATRIX_PEER_OBJECTCONTAINER_HPP */
+#endif /* OBJECTMATRIX_PEER_MATRIXSPACE_HPP */

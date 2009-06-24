@@ -4,33 +4,42 @@
 
 #include <set>
 #include <iostream>
+#include <gsl/gsl_errno.h>
+
 #include <boost/tuple/tuple.hpp>
 #include <boost/python.hpp>
 #include <boost/python/return_by_value.hpp>
-#include "position.hpp"
-#include "particle.hpp"
-#include "sphere.hpp"
-#include "species.hpp"
-#include "particle_id.hpp"
-#include "shell_id.hpp"
-#include "serial_id_generator.hpp"
-#include "object_container.hpp"
-#include "serial_id_generator.hpp"
-#include "peer/utils.hpp"
-#include "peer/tuple_converters.hpp"
-#include "peer/numpy/type_mappings.hpp"
-#include "peer/ObjectContainer.hpp"
-#include "peer/Identifier.hpp"
-#include "peer/set_indexing_suite.hpp"
 
-typedef double length_type;
-typedef position<length_type> position_type;
-typedef species_id species_id_type;
-typedef particle_id particle_id_type;
-typedef particle<length_type> particle_type;
-typedef species<length_type> species_type;
-typedef sphere<length_type> sphere_type;
-typedef shell_id shell_id_type;
+#include "Defs.hpp"
+#include "Vector3.hpp"
+#include "Particle.hpp"
+#include "Sphere.hpp"
+#include "SpeciesType.hpp"
+#include "ParticleID.hpp"
+#include "ShellID.hpp"
+#include "SerialIDGenerator.hpp"
+#include "MatrixSpace.hpp"
+#include "SerialIDGenerator.hpp"
+#include "Model.hpp"
+
+#include "peer/Exception.hpp"
+#include "peer/GeneratorIteratorWrapper.hpp"
+#include "peer/Identifier.hpp"
+#include "peer/MatrixSpace.hpp"
+#include "peer/numpy/type_mappings.hpp"
+#include "peer/ReactionRule.hpp"
+#include "peer/set_indexing_suite.hpp"
+#include "peer/SpeciesType.hpp"
+#include "peer/tuple_converters.hpp"
+#include "peer/utils.hpp"
+
+typedef Real length_type;
+typedef Vector3<length_type> position_type;
+typedef SpeciesTypeID species_id_type;
+typedef ParticleID particle_id_type;
+typedef Particle<length_type, species_id_type> particle_type;
+typedef Sphere<length_type> sphere_type;
+typedef ShellID shell_id_type;
 
 struct position_to_ndarray_converter
 {
@@ -124,7 +133,7 @@ struct seq_to_position_converter
 
 struct sphere_to_python_converter
 {
-    typedef sphere<length_type> native_type;
+    typedef sphere_type native_type;
 
     static PyObject* convert(native_type const& v)
     {
@@ -136,7 +145,7 @@ struct sphere_to_python_converter
 
 struct python_to_sphere_converter
 {
-    typedef sphere<length_type> native_type;
+    typedef sphere_type native_type;
 
     static void* convertible(PyObject* pyo)
     {
@@ -172,8 +181,8 @@ void register_id_generator(char const* class_name)
 {
     using namespace boost::python;
 
-    class_<serial_id_generator<T_> >(class_name, init<int>())
-        .def("__call__", &serial_id_generator<T_>::operator())
+    class_<SerialIDGenerator<T_> >(class_name, init<int>())
+        .def("__call__", &SerialIDGenerator<T_>::operator())
         ;
 }
 
@@ -224,9 +233,45 @@ struct python_to_particle_converter
     }
 };
 
+static boost::python::object species_type_class;
+
+struct species_type_to_species_type_id_converter
+{
+    typedef ::SpeciesTypeID native_type;
+
+    static void* convertible(PyObject* pyo)
+    {
+        if (!PyObject_TypeCheck(pyo, reinterpret_cast<PyTypeObject*>(
+                species_type_class.ptr())))
+        {
+            return 0;
+        }
+        return pyo;
+    }
+
+    static void construct(PyObject* pyo, 
+                          boost::python::converter::rvalue_from_python_stage1_data* data)
+    {
+        using namespace boost::python;
+        void* storage(reinterpret_cast<
+            converter::rvalue_from_python_storage<native_type>* >(
+                data)->storage.bytes);
+        new (storage) native_type(static_cast<SpeciesType*>(extract<SpeciesType*>(object(borrowed(pyo))))->id());
+        data->convertible = storage;
+    }
+};
+
+
 BOOST_PYTHON_MODULE(object_matrix)
 {
     using namespace boost::python;
+
+    import_array();
+
+    // GSL error handler: is this the best place for this?
+    gsl_set_error_handler(&gsl_error_handler);
+  
+    peer::util::register_std_exception_translator();
 
     peer::util::register_tuple_converter<
             boost::tuple<position_type, length_type> >();
@@ -257,33 +302,42 @@ BOOST_PYTHON_MODULE(object_matrix)
 
     peer::IdentifierWrapper<particle_id_type>::__register_class("ParticleID");
     register_id_generator<particle_id_type>("ParticleIDGenerator");
-    peer::IdentifierWrapper<species_id_type>::__register_class("SpeciesID");
-    register_id_generator<species_id_type>("SpeciesIDGenerator");
+    peer::IdentifierWrapper<species_id_type>::__register_class("SpeciesTypeID");
+    register_id_generator<species_id_type>("SpeciesTypeIDGenerator");
     peer::IdentifierWrapper<shell_id_type>::__register_class("ShellID");
     register_id_generator<shell_id_type>("ShellIDGenerator");
 
-    import_array();
-#if OBJECTMATRIX_USE_ITERATOR
-    peer::util::register_stop_iteration_exc_translator();
-#endif
-    //peer::ObjectContainer< object_container<sphere_type, int> >::__register_class("SphericalObjectContainer");
-    peer::ObjectContainer< object_container<sphere_type, shell_id> >::__register_class("ShellContainer");
-    peer::ObjectContainer< object_container<particle_type, particle_id_type> >::__register_class("ParticleContainer");
-
-    class_<species_type>("Species",
-        init<std::string, double, length_type>())
-        .add_property("name",
-            make_function(&species_type::name,
-                return_value_policy<return_by_value>()))
-        .add_property("radius",
-            make_function(&species_type::radius,
-                return_value_policy<return_by_value>()))
-        .add_property("D",
-            make_function(&species_type::D,
-                return_value_policy<return_by_value>()))
-        ;
+    peer::MatrixSpace< MatrixSpace<sphere_type, shell_id_type> >::__register_class("ShellContainer");
+    peer::MatrixSpace< MatrixSpace<particle_type, particle_id_type> >::__register_class("ParticleContainer");
 
     class_<std::set<particle_id_type> >("ParticleIDSet")
         .def(peer::util::set_indexing_suite<std::set<particle_id_type> >())
+        ;
+
+    species_type_class = peer::SpeciesType::__register_class();
+
+    class_<Model, boost::noncopyable>("Model")
+        .add_property("network_rules",
+            make_function(&Model::network_rules,
+                return_value_policy<reference_existing_object>()))
+        .def("new_species_type", &Model::new_species_type,
+                return_value_policy<reference_existing_object>())
+        .def("get_species_type_by_id", &Model::get_species_type_by_id,
+                return_value_policy<reference_existing_object>())
+        ;
+
+    peer::ReactionRule::__register_class();
+
+    peer::util::to_native_converter<SpeciesTypeID, species_type_to_species_type_id_converter>();
+
+    peer::util::GeneratorIteratorWrapper<ptr_generator<NetworkRules::reaction_rule_generator> >::__register_class("ReactionRuleGenerator");
+
+    peer::util::ExceptionWrapper<not_found, peer::util::PyExcTraits<&PyExc_LookupError> >::__register_class("NotFound");
+    peer::util::ExceptionWrapper<already_exists, peer::util::PyExcTraits<&PyExc_StandardError> >::__register_class("AlreadyExists");
+
+    class_<NetworkRules, boost::noncopyable>("NetworkRules", no_init)
+        .def("add_reaction_rule", &NetworkRules::add_reaction_rule)
+        .def("query_reaction_rule", static_cast<NetworkRules::reaction_rule_generator*(NetworkRules::*)(SpeciesTypeID const&) const>(&NetworkRules::query_reaction_rule), return_value_policy<return_by_value>())
+        .def("query_reaction_rule", static_cast<NetworkRules::reaction_rule_generator*(NetworkRules::*)(SpeciesTypeID const&, SpeciesTypeID const&) const>(&NetworkRules::query_reaction_rule), return_value_policy<return_by_value>())
         ;
 }

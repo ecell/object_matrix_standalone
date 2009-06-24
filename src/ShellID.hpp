@@ -9,13 +9,13 @@
 #elif defined(BOOST_FUNCTIONAL_HASH_HPP)
 #include <boost/functional/hash.hpp>
 #endif
-#include "identifier.hpp"
+#include "Identifier.hpp"
 
-struct shell_id: public identifier<shell_id, unsigned long long, int>
+struct ShellID: public Identifier<ShellID, unsigned long long, int>
 {
-    typedef identifier<shell_id, unsigned long long, int> base_type;
+    typedef Identifier<ShellID, unsigned long long, int> base_type;
 
-    shell_id(value_type const& value = value_type(0, 0))
+    ShellID(value_type const& value = value_type(0, 0))
         : base_type(value) {}
 };
 
@@ -28,9 +28,9 @@ namespace boost {
 #endif
 
 template<>
-struct hash<shell_id>
+struct hash<ShellID>
 {
-    std::size_t operator()(shell_id const& val)
+    std::size_t operator()(ShellID const& val)
     {
         return static_cast<std::size_t>(val().first ^ val().second);
     }
@@ -46,9 +46,9 @@ struct hash<shell_id>
 
 template<typename Tstrm_>
 inline std::basic_ostream<Tstrm_>& operator<<(std::basic_ostream<Tstrm_>& strm,
-        const shell_id& v)
+        const ShellID& v)
 {
-    strm << "shell_id(" << v().first << ":" << v().second << ")";
+    strm << "ShellID(" << v().first << ":" << v().second << ")";
     return strm;
 }
 

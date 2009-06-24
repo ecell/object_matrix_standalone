@@ -1,0 +1,78 @@
+README
+======
+
+Building the source
+-------------------
+
+Just type the following on the commmand line::
+
+ $ ./autogen.sh
+ $ ./configure
+ $ ./make
+
+
+Detailed package description
+----------------------------
+
+This package contains the implementation of the following fundamental classes:
+
+- Model
+- SpeciesType
+- NetworkRules
+- ReactionRule
+
+The description of each class is as follows:
+
+* Model class
+
+  Model class represents an abstract simulation model.  Details of the model are
+  supposed to be supplied to the simulator separately.
+  
+  For the present time, it only defines two methods:
+  
+  - Model::network_rules()
+  - Model::new_species_type()
+
+  Model::network_rules() returns the NetworkRules object that is tied to
+  the Model.  As NetworkRules is an abstract class that is not directly
+  instantiable,  one has to fetch the object through this method.
+  
+  Model::new_species_type() creates a new SpeciesType object, assigns to it
+  a newly generated SpeciesTypeID (by SerialIDGenerator) and returns it.  In
+  order to make sure that every SpeciesType has an unique SpeciesTypeID,
+  SpeciesType has to be indirectly instantiated with this factory method.
+  
+* SpeciesType
+
+  A SpeciesType object denotes a chemical species in general.  This object
+  cannot be directly instantiated and has to be retrieved via
+  Model::new_species_type().
+  
+  This class is designed to hold arbitrary string properties keyed by strings.
+  The interpretation of those properties depends on the simulator, as the
+  simulator implementation is supposed to have a specialized, non-dynamic
+  version of this object.  For instance, a particle simulator should take
+  the diffusion coefficient, shape and approximate radius of the species
+  from the corresponing SpeciesType object and then creates a simulator's
+  view of the object, say, SpeciesInfo, which would cache the values of
+  those parameters.
+
+* NetworkRules
+
+  A NetworkRules object manages a set of reaction rules.  One can add a
+  reaction rule with NetworkRules::add_reaction_rule() and queries the
+  registered (or possibly deduced) reaction rules through
+  NetworkRules::query_reaction_rule().
+  
+* ReactionRule
+
+  A ReactionRule object corresponds to one specific reaction rule constituted
+  by reactants, products and a kinetic constant.  Reactants must be one or two
+  species while products can be any number of species.
+
+Python binding
+--------------
+
+Python stub classes also come with those classes.  The implementation is put in modelmodule.cpp and files under peer/ dircetory.
+
+

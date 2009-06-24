@@ -1,4 +1,4 @@
-#define BOOST_TEST_MODULE "position"
+#define BOOST_TEST_MODULE "Vector3"
 
 #include <boost/config.hpp>
 #include <boost/test/included/unit_test.hpp>
@@ -6,7 +6,7 @@
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/mpl/list.hpp>
 
-#include "position.hpp"
+#include "Vector3.hpp"
 
 typedef boost::mpl::list3<long double, double, float> scalar_types;
 
@@ -35,28 +35,28 @@ struct get_tolerance<long double>
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(distance_sq, T_, scalar_types)
 {
-    typedef ::position<T_> position;
+    typedef ::Vector3<T_> Vector3;
 
     BOOST_CHECK_CLOSE((T_)3.0f,
-            position(1, 1, 1).distance_sq(position(0, 0, 0)),
+            Vector3(1, 1, 1).distance_sq(Vector3(0, 0, 0)),
             get_tolerance<T_>::value);
     BOOST_CHECK_CLOSE((T_)3.0f,
-            position(1, 2, 1).distance_sq(position(0, 1, 0)),
+            Vector3(1, 2, 1).distance_sq(Vector3(0, 1, 0)),
             get_tolerance<T_>::value);
     BOOST_CHECK_CLOSE((T_)0.75f,
-            position(0.5, 0.5, 1).distance_sq(position(0, 1, 0.5)),
+            Vector3(0.5, 0.5, 1).distance_sq(Vector3(0, 1, 0.5)),
             get_tolerance<T_>::value);
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(add_op, T_, scalar_types)
 {
-    typedef ::position<T_> position;
+    typedef ::Vector3<T_> Vector3;
 
-    BOOST_CHECK_EQUAL(position(1, 1, 1),
-            position(1, 1, 1) + position(0, 0, 0));
-    BOOST_CHECK_EQUAL(position(1, 3, 1),
-            position(1, 2, 1) + position(0, 1, 0));
-    BOOST_CHECK_EQUAL(position(0.5, 1.5, 1.5),
-            position(0.5, 0.5, 1) + position(0, 1, 0.5));
+    BOOST_CHECK_EQUAL(Vector3(1, 1, 1),
+            Vector3(1, 1, 1) + Vector3(0, 0, 0));
+    BOOST_CHECK_EQUAL(Vector3(1, 3, 1),
+            Vector3(1, 2, 1) + Vector3(0, 1, 0));
+    BOOST_CHECK_EQUAL(Vector3(0.5, 1.5, 1.5),
+            Vector3(0.5, 0.5, 1) + Vector3(0, 1, 0.5));
 }
 

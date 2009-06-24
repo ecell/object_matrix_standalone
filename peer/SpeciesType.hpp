@@ -5,7 +5,7 @@
 #include <boost/python/copy_const_reference.hpp>
 #include <boost/python/return_value_policy.hpp>
 #include <boost/lexical_cast.hpp>
-#include "../SpeciesType.hpp"
+#include "../src/SpeciesType.hpp"
 
 namespace peer {
 

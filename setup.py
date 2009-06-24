@@ -102,18 +102,19 @@ class AutoconfEmulator(object):
             else:
                 f.write('#undef HAVE_DECL_%s\n' % self.macro_name(key))
 
-ac = AutoconfEmulator(lang_ext="cpp")
-ac.check_headers(
-    [
-        'tr1/functional',
-        'tr1/unordered_map',
-        'unordered_map',
-        'boost/functional/hash.hpp'
-        ],
-    lang_ext="cpp")
-ac.check_types(['std::hash<int>'], includes=['functional'])
-ac.check_types(['std::tr1::hash<int>'], includes=['tr1/functional'])
-ac.generate('config.h')
+if not os.path.exists('config.h'):
+    ac = AutoconfEmulator(lang_ext="cpp")
+    ac.check_headers(
+        [
+            'tr1/functional',
+            'tr1/unordered_map',
+            'unordered_map',
+            'boost/functional/hash.hpp'
+            ],
+        lang_ext="cpp")
+    ac.check_types(['std::hash<int>'], includes=['functional'])
+    ac.check_types(['std::tr1::hash<int>'], includes=['tr1/functional'])
+    ac.generate('config.h')
 
 setup(
     name = 'object_matrix',
@@ -123,9 +124,9 @@ setup(
     ext_modules = [
         Extension(
             'object_matrix',
-            [ 'object_matrix_module.cpp', ],
-            include_dirs = [ '../src', '.' ],
-            libraries = [ 'boost_python-mt' ],
+            [ 'object_matrix_module.cpp', 'src/Model.cpp', 'src/NetworkRules.cpp', 'src/BasicNetworkRulesImpl.cpp', 'src/utils.cpp' ],
+            include_dirs = [ 'src', '.' ],
+            libraries = [ 'boost_python-mt', 'gsl', 'gslcblas' ],
             define_macros = [ ('USE_NUMPY', '1'), ('HAVE_CONFIG_H', '1') ],
             language = 'c++',
             )

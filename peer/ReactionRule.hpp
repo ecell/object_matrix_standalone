@@ -10,7 +10,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/tuple/tuple.hpp>
 #include "peer/tuple_converters.hpp"
-#include "../ReactionRule.hpp"
+#include "../src/ReactionRule.hpp"
 
 namespace peer {
 
