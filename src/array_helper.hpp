@@ -14,17 +14,16 @@
 #define ARRAY_HELPER_TPL(__z__, __n__, __d__) \
 template<typename T_> \
 inline ::boost::array<T_, __n__> array_gen(\
-        BOOST_PP_ENUM_PARAMS(__n__, typename ::boost::call_traits<T_>::param_type p)) \
+        BOOST_PP_ENUM_PARAMS(__n__, T_ const& p)) \
 { \
     ::boost::array<T_, __n__> retval; \
     BOOST_PP_REPEAT_ ## __z__(__n__, ARRAY_HELPER_INNER_TPL, retval) \
     return retval; \
 }
 
-BOOST_PP_REPEAT(BOOST_PP_LIMIT_REPEAT, ARRAY_HELPER_TPL, )
+BOOST_PP_REPEAT_FROM_TO(0, BOOST_PP_LIMIT_REPEAT, ARRAY_HELPER_TPL, )
 
 #undef ARRAY_HELPER_TPL
 #undef ARRAY_HELPER_INNER_TPL
-
 
 #endif /* ARRAY_HELPER_HPP */
