@@ -8,7 +8,7 @@
 #include "Vector3.hpp"
 #include "Sphere.hpp"
 
-template<typename Toc_, typename Tfun_>
+template<typename Toc_, typename Tfun_, typename Tsphere_>
 class neighbor_filter
         : public std::unary_function<
             typename boost::mpl::if_<
@@ -21,11 +21,10 @@ class neighbor_filter
             typename Toc_::const_iterator,
             typename Toc_::iterator>::type argument_type;
     typedef void result_type;
-
-    typedef const ::Sphere< typename Toc_::mapped_type::length_type > sphere_type;
+    typedef Tsphere_ sphere_type;
 
 public:
-    inline neighbor_filter(Tfun_& next, const sphere_type& cmp)
+    inline neighbor_filter(Tfun_& next, const Tsphere_& cmp)
         : next_(next), cmp_(cmp) {}
 
     inline void operator()(argument_type const& i) const
@@ -49,18 +48,18 @@ public:
 
 private:
     Tfun_& next_;
-    sphere_type cmp_;
+    const sphere_type cmp_;
 };
 
-template<typename Toc_, typename Tfun_>
+template<typename Toc_, typename Tfun_, typename Tsphere_>
 inline void take_neighbor(Toc_& oc, Tfun_& fun,
-        const ::Sphere< typename Toc_::mapped_type::length_type >& cmp)
+        const Tsphere_& cmp)
 {
     oc.each_neighbor(oc.index(cmp.position()),
-                     neighbor_filter<Toc_, Tfun_>(fun, cmp));
+                     neighbor_filter<Toc_, Tfun_, Tsphere_>(fun, cmp));
 }
 
-template<typename Toc_, typename Tfun_>
+template<typename Toc_, typename Tfun_, typename Tsphere_>
 class cyclic_neighbor_filter
         : public std::binary_function<
             typename Toc_::reference,
@@ -70,7 +69,7 @@ class cyclic_neighbor_filter
     typedef typename Toc_::iterator first_argument_type;
     typedef const typename Toc_::position_type& second_argument_type;
     typedef void result_type;
-    typedef const ::Sphere< typename Toc_::mapped_type::length_type > sphere_type;
+    typedef Tsphere_ sphere_type;
 
 public:
     inline cyclic_neighbor_filter(Tfun_& next,
@@ -99,15 +98,15 @@ public:
 
 private:
     Tfun_& next_;
-    sphere_type cmp_;
+    const sphere_type cmp_;
 };
 
-template<typename Toc_, typename Tfun_>
+template<typename Toc_, typename Tfun_, typename Tsphere_>
 inline void take_neighbor_cyclic(Toc_& oc, Tfun_& fun,
-         const ::Sphere< typename Toc_::mapped_type::length_type >& cmp)
+         const Tsphere_& cmp)
 {
     oc.each_neighbor_cyclic(oc.index(cmp.position()),
-            cyclic_neighbor_filter<Toc_, Tfun_>(fun, cmp));
+            cyclic_neighbor_filter<Toc_, Tfun_, Tsphere_>(fun, cmp));
 }
 
 #endif /* ALGORITHM_HPP */
