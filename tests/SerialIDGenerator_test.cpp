@@ -1,22 +1,27 @@
-#define BOOST_TEST_MODULE "serial_id_generator"
+#define BOOST_TEST_MODULE "SerialIDGenerator"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
+
 #include <boost/test/included/unit_test.hpp>
 
 #include <iostream>
-#include "serial_id_generator.hpp"
-#include "particle_id.hpp"
+#include "SerialIDGenerator.hpp"
+#include "ParticleID.hpp"
 
 BOOST_AUTO_TEST_CASE(with_int)
 {
-    serial_id_generator<int> s;
+    SerialIDGenerator<int> s;
     BOOST_CHECK_EQUAL(s(), serial_add(int(0), 1));
     BOOST_CHECK_EQUAL(s(), serial_add(serial_add(int(0), 1), 1));
     BOOST_CHECK_EQUAL(s(), serial_add(serial_add(serial_add(int(0), 1), 1), 1));
 }
 
-BOOST_AUTO_TEST_CASE(with_particle_id)
+BOOST_AUTO_TEST_CASE(with_ParticleID)
 {
-    serial_id_generator<particle_id> s;
-    BOOST_CHECK_EQUAL(s(), serial_add(particle_id(), 1));
-    BOOST_CHECK_EQUAL(s(), serial_add(serial_add(particle_id(), 1), 1));
-    BOOST_CHECK_EQUAL(s(), serial_add(serial_add(serial_add(particle_id(), 1), 1), 1));
+    SerialIDGenerator<ParticleID> s;
+    BOOST_CHECK_EQUAL(s(), serial_add(ParticleID(), 1));
+    BOOST_CHECK_EQUAL(s(), serial_add(serial_add(ParticleID(), 1), 1));
+    BOOST_CHECK_EQUAL(s(), serial_add(serial_add(serial_add(ParticleID(), 1), 1), 1));
 }

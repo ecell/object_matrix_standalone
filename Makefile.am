@@ -63,8 +63,13 @@ clean-local:
 	rm -f tests/model_test
 	rm -f object_matrix.so
 
-check-local: tests/model_test tests/MatrixSpace_test tests/filters_test.cpp tests/array_helper_test.cpp object_matrix.so
+check-local: tests/model_test tests/MatrixSpace_test tests/filters_test tests/array_helper_test tests/ReactionRule_test tests/SerialIDGenerator_test object_matrix.so
 	tests/model_test
+	tests/array_helper_test
+	tests/SerialIDGenerator_test
+	tests/filters_test
+	tests/ReactionRule_test
+	tests/MatrixSpace_test
 	$(PYTHON) runtest.py
 
 tests/array_helper_test: tests/array_helper_test.cpp
@@ -74,6 +79,9 @@ tests/SerialIDGenerator_test: tests/SerialIDGenerator_test.cpp
 	$(CXX) -DHAVE_CONFIG_H -I. -Isrc -o $@ $^
 
 tests/filters_test: tests/filters_test.cpp
+	$(CXX) -DHAVE_CONFIG_H -I. -Isrc -o $@ $^
+
+tests/ReactionRule_test: tests/ReactionRule_test.cpp
 	$(CXX) -DHAVE_CONFIG_H -I. -Isrc -o $@ $^
 
 tests/MatrixSpace_test: tests/MatrixSpace_test.cpp
