@@ -36,6 +36,16 @@ struct Particle
         return sphere_.radius();
     }
 
+    sphere_type& as_sphere()
+    {
+        return sphere_;
+    }
+
+    sphere_type const& as_sphere() const
+    {
+        return sphere_;
+    }
+
     species_id_type const& sid() const
     {
         return species_id_;
@@ -44,6 +54,16 @@ struct Particle
     species_id_type& sid()
     {
         return species_id_;
+    }
+
+    bool operator==(Particle const& rhs) const
+    {
+        return species_id_ == rhs.sid() && sphere_ == rhs.as_sphere();
+    }
+
+    bool operator!=(Particle const& rhs) const
+    {
+        return !operator==(rhs);
     }
 
 private:

@@ -106,6 +106,22 @@ namespace util
             std_exception_translator );
     }
 
+    template<typename T_, typename Tval_,
+            Tval_ const&(T_::*Vgetter_)() const,
+            Tval_ &(T_::*Vsetter_)()>
+    struct reference_accessor_wrapper
+    {
+        Tval_ const& get(T_ const& impl)
+        {
+            return (impl.*Vgetter_)();
+        }
+
+        void set(T_& impl, Tval_ const& v)
+        {
+            (impl.*Vsetter_)() = v;
+        }
+    };
+ 
 } // namespace util
 
 } // namespace peer

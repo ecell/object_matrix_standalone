@@ -7,6 +7,7 @@
 #include <boost/range/begin.hpp>
 #include <boost/range/end.hpp>
 #include <boost/range/iterator.hpp>
+#include <boost/range/const_iterator.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/iterator/iterator_traits.hpp>
@@ -264,6 +265,89 @@ template<typename Trange_, typename Ticat_>
 struct check_range_iterator_category
     : public boost::is_same<
         typename range_iterator_category<Trange_>::type, Ticat_> {};
+
+template<typename T_>
+class reference_or_instance
+{
+public:
+    reference_or_instance(T_& r): type_(REF)
+    {
+        ref_ = &r;
+    }
+
+    reference_or_instance(T_ const& i, int)
+        : type_(INSTANCE), ref_(new (instance_) T_(i)) {}
+
+    reference_or_instance(): type_(INSTANCE), ref_(new (instance_) T_()) {}
+
+    reference_or_instance(reference_or_instance const& that): type_(that.type_)
+    {
+        switch (type_)
+        {
+        case REF:
+            ref_ = that.ref_;
+            break;
+        case INSTANCE:
+            ref_ = new (instance_) T_(static_cast<T_ const&>(that));
+            break;
+        }
+    }
+
+    ~reference_or_instance()
+    {
+        if (type_ == INSTANCE)
+        {
+            ref_->~T_();
+        }
+    }
+
+    operator T_&()
+    {
+        return *ref_;
+    }
+
+    operator T_ const&() const
+    {
+        return *ref_;
+    }
+
+private:
+    enum {
+        REF,
+        INSTANCE
+    } type_;
+
+    char instance_[sizeof(T_)];
+    T_* ref_;
+};
+
+template<typename Trange_, typename Tfun_>
+inline boost::iterator_range<
+    boost::transform_iterator<
+        Tfun_, typename boost::range_const_iterator<Trange_>::type> >
+make_transform_iterator_range(Trange_ const& range, Tfun_ const& fun)
+{
+    typedef boost::transform_iterator<Tfun_,
+        typename boost::range_const_iterator<Trange_>::type> transform_iterator;
+
+    return boost::iterator_range<transform_iterator>(
+        transform_iterator(boost::begin(range), fun),
+        transform_iterator(boost::end(range), fun));
+}
+
+template<typename Trange_, typename Tfun_>
+inline boost::iterator_range<
+    boost::transform_iterator<
+        Tfun_, typename boost::range_iterator<Trange_>::type> >
+make_transform_iterator_range(Trange_& range, Tfun_ const& fun)
+{
+    typedef boost::transform_iterator<Tfun_,
+        typename boost::range_iterator<Trange_>::type> transform_iterator;
+
+    return boost::iterator_range<transform_iterator>(
+        transform_iterator(boost::begin(range), fun),
+        transform_iterator(boost::end(range), fun));
+}
 
 void gsl_error_handler( char const* reason, char const* file, int line, int gsl_errno );
 

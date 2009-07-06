@@ -39,7 +39,7 @@ struct SpeciesInfo
 
     bool operator==(SpeciesInfo const& rhs) const
     {
-        return id == rhs.id() && diffusion_coef_ == rhs.D() &&
+        return id_ == rhs.id() && diffusion_coef_ == rhs.D() &&
                 radius_ == rhs.radius();
     }
 

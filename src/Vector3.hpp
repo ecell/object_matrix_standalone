@@ -5,29 +5,107 @@
 #include <functional>
 #include <algorithm>
 #include <cmath>
+#include <boost/mpl/bool.hpp>
+#include <boost/type_traits/is_arithmetic.hpp>
+#include <boost/utility/enable_if.hpp>
 #include <boost/array.hpp>
 #include <boost/range/begin.hpp>
 #include <boost/range/end.hpp>
 
 #include "array_traits.hpp"
 
+template<typename T_>
+inline T_ add( T_ const& p1, T_ const& p2, typename boost::enable_if<boost::is_arithmetic<T_> >::type* = 0)
+{
+    return p1 + p2;
+}
+
+template<typename T_>
+inline T_ subtract( T_ const& p1, T_ const& p2, typename boost::enable_if<boost::is_arithmetic<T_> >::type* = 0)
+{
+    return p1 - p2;
+}
+
+template<typename T_>
+inline T_ multiply( T_ const& p1, T_ const& p2, typename boost::enable_if<boost::is_arithmetic<T_> >::type* = 0)
+{
+    return p1 * p2;
+}
+
+template<typename T_>
+inline T_ divide( T_ const& p1, T_ const& p2, typename boost::enable_if<boost::is_arithmetic<T_> >::type* = 0)
+{
+    return p1 / p2;
+}
+
+template<typename T_>
+inline T_ modulo( T_ const& p1, T_ const& p2 )
+{
+    return p1 % p2;
+}
+
+template<>
+inline float modulo( float const& p1, float const& p2 )
+{
+    return std::fmod(p1, p2);
+}
+
+template<>
+inline double modulo( double const& p1, double const& p2 )
+{
+    return std::fmod(p1, p2);
+}
+
+template<typename T_>
+struct is_vector3: public boost::mpl::false_ {};
+
 template< typename T_ >
-inline T_ add( T_ const& p1, T_ const& p2 )
+inline T_ add( T_ const& p1, T_ const& p2, typename boost::enable_if<is_vector3<T_> >::type* = 0 )
 {
     T_ retval;
-    retval[0] = p1[0] + p2[0];
-    retval[1] = p1[1] + p2[1];
-    retval[2] = p1[2] + p2[2];
+    retval[0] = add(p1[0], p2[0]);
+    retval[1] = add(p1[1], p2[1]);
+    retval[2] = add(p1[2], p2[2]);
     return retval;
 }
 
 template< typename T_ >
-inline T_ subtract( T_ const& p1, T_ const& p2 )
+inline T_ subtract( T_ const& p1, T_ const& p2, typename boost::enable_if<is_vector3<T_> >::type* = 0  )
 {
     T_ retval;
-    retval[0] = p1[0] - p2[0];
-    retval[1] = p1[1] - p2[1];
-    retval[2] = p1[2] - p2[2];
+    retval[0] = subtract(p1[0], p2[0]);
+    retval[1] = subtract(p1[1], p2[1]);
+    retval[2] = subtract(p1[2], p2[2]);
+    return retval;
+}
+
+template<typename T_>
+inline T_ divide( T_ const& p1, typename T_::value_type p2, typename boost::enable_if<is_vector3<T_> >::type* = 0  )
+{
+    T_ retval;
+    retval[0] = divide(p1[0], p2);
+    retval[1] = divide(p1[1], p2);
+    retval[2] = divide(p1[2], p2);
+    return retval;
+}
+
+template<typename T_>
+inline T_ multiply( T_ const& p1, typename T_::value_type p2, typename boost::enable_if<is_vector3<T_> >::type* = 0  )
+{
+    T_ retval;
+    retval[0] = multiply(p1[0], p2);
+    retval[1] = multiply(p1[1], p2);
+    retval[2] = multiply(p1[2], p2);
+    return retval;
+}
+
+template<typename T_>
+inline T_ modulo( T_ const& p1, typename T_::value_type p2, typename boost::enable_if<is_vector3<T_> >::type* = 0  )
+{
+    T_ retval;
+    retval[0] = modulo(p1[0], p2);
+    retval[1] = modulo(p1[1], p2);
+    retval[2] = modulo(p1[2], p2);
     return retval;
 }
 
@@ -139,6 +217,32 @@ struct Vector3: public boost::array<T_, 3>
     typedef typename base_type::value_type value_type;
     typedef typename base_type::size_type size_type;
 
+    Vector3& operator+=(Vector3 const& rhs)
+    {
+        *this = add(*this, rhs);
+        return *this;
+    }
+
+    Vector3& operator-=(Vector3 const& rhs)
+    {
+        *this = subtract(*this, rhs);
+        return *this;
+    }
+
+    template<typename TT_>
+    Vector3& operator*=(TT_ const& rhs)
+    {
+        *this = multiply(*this, rhs);
+        return *this;
+    }
+
+    template<typename TT_>
+    Vector3& operator/=(TT_ const& rhs)
+    {
+        *this = divide(*this, rhs);
+        return *this;
+    }
+
     Vector3()
     {
         (*this)[0] = 0;
@@ -163,15 +267,27 @@ struct Vector3: public boost::array<T_, 3>
 };
 
 template< typename T_ >
-Vector3< T_ > operator+(Vector3< T_ > const& lhs, Vector3< T_ > const& rhs)
+inline Vector3< T_ > operator+(Vector3< T_ > const& lhs, Vector3< T_ > const& rhs)
 {
     return add( lhs, rhs );
 }
 
 template< typename T_ >
-Vector3< T_ > operator-(Vector3< T_ > const& lhs, Vector3< T_ > const& rhs)
+inline Vector3< T_ > operator-(Vector3< T_ > const& lhs, Vector3< T_ > const& rhs)
 {
     return subtract( lhs, rhs );
+}
+
+template<typename T_>
+inline Vector3<T_> operator/(Vector3<T_> const& lhs, T_ const& rhs)
+{
+    return divide(lhs, rhs);
+}
+
+template<typename T_>
+inline Vector3<T_> operator*(Vector3<T_> const& lhs, T_ const& rhs)
+{
+    return multiply(lhs, rhs);
 }
 
 template<typename Tstrm_, typename T_>
@@ -181,6 +297,9 @@ operator<<(std::basic_ostream< Tstrm_ >& strm, const Vector3< T_ >& v)
     strm << "(" << v[0] <<  ", " << v[1] <<  ", " << v[2] << ")";
     return strm;
 }
+
+template<typename T_>
+struct is_vector3<Vector3<T_> >: public boost::mpl::true_ {};
 
 namespace detail {
     template< typename T_ >

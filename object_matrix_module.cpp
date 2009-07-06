@@ -9,6 +9,7 @@
 #include <boost/tuple/tuple.hpp>
 #include <boost/python.hpp>
 #include <boost/python/return_by_value.hpp>
+#include <boost/python/return_internal_reference.hpp>
 
 #include "Defs.hpp"
 #include "Vector3.hpp"
@@ -21,6 +22,7 @@
 #include "MatrixSpace.hpp"
 #include "SerialIDGenerator.hpp"
 #include "Model.hpp"
+#include "World.hpp"
 
 #include "peer/Exception.hpp"
 #include "peer/GeneratorIteratorWrapper.hpp"
@@ -261,6 +263,56 @@ struct species_type_to_species_type_id_converter
     }
 };
 
+template<typename T_>
+struct world_get_species
+{
+    typedef typename T_::species_iterator iterator;
+
+    static iterator begin(T_& impl)
+    {
+        return impl.get_species().begin();
+    }
+
+    static iterator end(T_& impl)
+    {
+        return impl.get_species().end();
+    }
+};
+
+template<typename T_>
+static void register_world_class(char const* name)
+{
+    using namespace boost::python;
+    typedef T_ world_type;
+
+    class_<world_type>(name, init<typename world_type::length_type,
+                                  typename world_type::size_type>())
+        .add_property("num_particles", &world_type::num_particles)
+        .add_property("world_size", &world_type::world_size)
+        .add_property("cell_size", &world_type::cell_size)
+        .add_property("matrix_size", &world_type::matrix_size)
+        .add_property("species",
+            range<return_value_policy<return_by_value>, world_type const&>(
+                &world_get_species<world_type const>::begin,
+                &world_get_species<world_type const>::end))
+        .def("add_species", &world_type::add_species)
+        .def("get_species",
+            (typename world_type::species_type const&(world_type::*)(typename world_type::species_id_type const&) const)&world_type::get_species,
+            return_internal_reference<>())
+        .def("distance", &world_type::distance)
+        .def("distance_sq", &world_type::distance_sq)
+        .def("apply_boundary", &world_type::apply_boundary)
+        .def("new_particle", &world_type::new_particle)
+        .def("check_overlap", (bool(world_type::*)(typename world_type::particle_id_pair const&) const)&world_type::check_overlap)
+        .def("update_particle", &world_type::update_particle)
+        .def("remove_particle", &world_type::remove_particle)
+        .def("get_particle", &world_type::get_particle)
+        .def("create_transaction", &world_type::create_transaction,
+                return_internal_reference<>())
+        .def("__iter__", &world_type::get_particles,
+                return_value_policy<return_by_value>())
+        ;
+}
 
 BOOST_PYTHON_MODULE(object_matrix)
 {
@@ -340,4 +392,53 @@ BOOST_PYTHON_MODULE(object_matrix)
         .def("query_reaction_rule", static_cast<NetworkRules::reaction_rule_generator*(NetworkRules::*)(SpeciesTypeID const&) const>(&NetworkRules::query_reaction_rule), return_value_policy<return_by_value>())
         .def("query_reaction_rule", static_cast<NetworkRules::reaction_rule_generator*(NetworkRules::*)(SpeciesTypeID const&, SpeciesTypeID const&) const>(&NetworkRules::query_reaction_rule), return_value_policy<return_by_value>())
         ;
+
+    typedef SpeciesInfo<species_id_type, length_type> species_info_type;
+    class_<species_info_type>("SpeciesInfo", init<species_id_type>())
+        .def(init<species_id_type, length_type, Real>())
+        .add_property("id",
+            make_function(&species_info_type::id,
+                return_value_policy<return_by_value>()))
+        .add_property("radius",
+            make_function(
+                &peer::util::reference_accessor_wrapper<
+                    species_info_type, length_type,
+                    &species_info_type::radius,
+                    &species_info_type::radius>::get,
+                return_value_policy<return_by_value>()),
+            &peer::util::reference_accessor_wrapper<
+                species_info_type, Real,
+                &species_info_type::radius,
+                &species_info_type::radius>::set)
+        ;
+
+    typedef CyclicWorldTraits<length_type> world_traits_type;
+    typedef World<world_traits_type> CyclicWorld;
+    typedef CyclicWorld::transaction_type transaction_type;
+
+    peer::util::GeneratorIteratorWrapper<ptr_generator<CyclicWorld::particle_id_pair_generator> >::__register_class("ParticleIDPairGenerator");
+
+    class_<Transaction<world_traits_type>, boost::noncopyable>("Transaction", no_init)
+        .add_property("num_particles", &transaction_type::num_particles)
+        .add_property("added_particles",
+            make_function(&transaction_type::get_added_particles,
+                return_value_policy<return_by_value>()))
+        .add_property("removed_particles",
+            make_function(&transaction_type::get_removed_particles,
+                return_value_policy<return_by_value>()))
+        .add_property("modified_particles",
+            make_function(&transaction_type::get_modified_particles,
+                return_value_policy<return_by_value>()))
+        .def("new_particle", &transaction_type::new_particle)
+        .def("check_overlap", (bool(transaction_type::*)(transaction_type::particle_id_pair const&) const)&transaction_type::check_overlap)
+        .def("update_particle", &transaction_type::update_particle)
+        .def("remove_particle", &transaction_type::remove_particle)
+        .def("get_particle", &transaction_type::get_particle)
+        .def("create_transaction", &transaction_type::create_transaction,
+                return_internal_reference<>())
+        .def("__iter__", &transaction_type::get_particles,
+                return_value_policy<return_by_value>())
+        ;
+
+    register_world_class<CyclicWorld>("CyclicWorld");
 }

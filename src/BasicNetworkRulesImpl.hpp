@@ -17,7 +17,7 @@ public:
 
     virtual reaction_rule_generator* query_reaction_rule(SpeciesTypeID const& r1) const;
 
-    virtual reaction_rule_generator* query_reaction_rule(SpeciesTypeID const&, SpeciesTypeID const& r2) const;
+    virtual reaction_rule_generator* query_reaction_rule(SpeciesTypeID const& r1, SpeciesTypeID const& r2) const;
 
     virtual ~BasicNetworkRulesImpl();
 

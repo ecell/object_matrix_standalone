@@ -19,16 +19,6 @@ public:
     Sphere(const position_type& position, const length_type& radius)
         : position_(position), radius_(radius) {}
 
-    bool operator==(const Sphere& rhs) const
-    {
-        return position_ == rhs.position_ && radius_ == rhs.radius_;
-    }
-
-    bool operator!=(const Sphere& rhs) const
-    {
-        return !operator==(rhs);
-    }
-
     position_type const& position() const
     {
         return position_;
@@ -53,6 +43,19 @@ private:
     position_type position_;
     length_type radius_;
 };
+
+template<typename T_, typename Trhs_>
+inline bool operator==(Sphere<T_> const& lhs, Trhs_ const& rhs)
+{
+    return lhs.position() == rhs.position() &&
+            lhs.radius() == rhs.radius();
+}
+
+template<typename T_, typename Trhs_>
+inline bool operator!=(Sphere<T_> const& lhs, Trhs_ const& rhs)
+{
+    return !operator==(lhs, rhs);
+}
 
 template<typename Tstrm_, typename T_>
 inline std::basic_ostream<Tstrm_>& operator<<(std::basic_ostream<Tstrm_>& strm,

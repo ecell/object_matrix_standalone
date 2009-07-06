@@ -9,6 +9,7 @@
 class NetworkRules
 {
 public:
+    typedef ReactionRule reaction_rule_type;
     typedef abstract_limited_generator<ReactionRule> reaction_rule_generator;
 
 public:
