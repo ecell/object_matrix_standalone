@@ -144,14 +144,14 @@ public:
     {
         return make_range_generator<true>(
             make_transform_iterator_range(removed_particles_,
-                boost::bind(&TransactionImpl::get_particle, this, _1)));
+                boost::bind(&TransactionImpl::get_original_particle, this, _1)));
     }
 
     virtual particle_id_pair_generator* get_modified_particles() const
     {
         return make_range_generator<true>(
             make_transform_iterator_range(modified_particles_,
-                boost::bind(&TransactionImpl::get_particle, this, _1)));
+                boost::bind(&TransactionImpl::get_original_particle, this, _1)));
     }
 
     virtual void rollback()
@@ -174,6 +174,18 @@ public:
     virtual ~TransactionImpl() {}
 
     TransactionImpl(particle_container_type& world): pc_(world) {}
+
+private:
+    particle_id_pair get_original_particle(particle_id_type const& id) const
+    {
+        typename particle_id_pair_set_type::const_iterator i(orig_particles_.find(id));
+        if (orig_particles_.end() == i)
+        {
+            throw not_found(std::string("No such particle: id=")
+                    + boost::lexical_cast<std::string>(id));
+        }
+        return *i;
+    }
 
 private:
     particle_container_type& pc_;
