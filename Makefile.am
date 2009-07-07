@@ -63,7 +63,7 @@ clean-local:
 	rm -f tests/model_test
 	rm -f object_matrix.so
 
-check-local: tests/model_test tests/MatrixSpace_test tests/filters_test tests/array_helper_test tests/ReactionRule_test tests/SerialIDGenerator_test object_matrix.so
+check-local: tests/model_test tests/MatrixSpace_test tests/filters_test tests/array_helper_test tests/ReactionRule_test tests/SerialIDGenerator_test tests/World_test object_matrix.so
 	tests/model_test
 	tests/array_helper_test
 	tests/SerialIDGenerator_test
@@ -88,6 +88,9 @@ tests/MatrixSpace_test: tests/MatrixSpace_test.cpp
 	$(CXX) -DHAVE_CONFIG_H -I. -Isrc -o $@ $^
 
 tests/model_test: tests/model_test.cpp src/NetworkRules.cpp src/BasicNetworkRulesImpl.cpp src/Model.cpp
+	$(CXX) -DHAVE_CONFIG_H -I. -Isrc -o $@ $^
+
+tests/World_test: tests/World_test.cpp
 	$(CXX) -DHAVE_CONFIG_H -I. -Isrc -o $@ $^
 
 object_matrix.so: object_matrix_module.cpp
