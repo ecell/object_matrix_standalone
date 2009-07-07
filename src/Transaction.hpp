@@ -59,7 +59,8 @@ public:
             position_type const& pos)
     {
         particle_id_pair retval(pc_.new_particle(sid, pos));
-        BOOST_ASSERT(added_particles_.push_no_duplicate(retval.first));
+        const bool result(added_particles_.push_no_duplicate(retval.first));
+        BOOST_ASSERT(result);
         return retval;
     }
 
@@ -93,7 +94,8 @@ public:
 
         if (added_particles_.erase(id) == 0)
         {
-            BOOST_ASSERT(removed_particles_.push_no_duplicate(id));
+            const bool result(removed_particles_.push_no_duplicate(id));
+            BOOST_ASSERT(result);
         }
         else
         {
@@ -169,6 +171,10 @@ public:
         {
             pc_.remove_particle(*i);
         }
+        added_particles_.clear();
+        modified_particles_.clear();
+        removed_particles_.clear();
+        orig_particles_.clear();
     }
 
     virtual ~TransactionImpl() {}

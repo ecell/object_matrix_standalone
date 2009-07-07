@@ -34,6 +34,11 @@ public:
     typedef value_type& reference;
     typedef value_type const& const_reference;
 
+    size_type size() const
+    {
+        return boost::size(cntnr_);
+    }
+
     iterator begin()
     {
         return boost::begin(cntnr_);
@@ -151,6 +156,11 @@ public:
         const size_type retval(i.second - i.first);
         cntnr_.erase(i.first, i.second);
         return retval;
+    }
+
+    void clear()
+    {
+        cntnr_.clear();
     }
 
     sorted_list(TweakOrdering_& ord): ord_(ord) {}
