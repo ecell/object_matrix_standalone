@@ -5,9 +5,6 @@
 #include <stdexcept>
 #include <functional>
 
-#include <typeinfo> // for debug
-#include <iostream> // for debug
-
 #include <boost/utility/enable_if.hpp>
 #include <boost/call_traits.hpp>
 #include <boost/shared_ptr.hpp>
