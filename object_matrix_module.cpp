@@ -364,6 +364,7 @@ BOOST_PYTHON_MODULE(object_matrix)
     peer::IdentifierWrapper<shell_id_type>::__register_class("ShellID");
     register_id_generator<shell_id_type>("ShellIDGenerator");
 
+    peer::MatrixSpace< MatrixSpace<sphere_type, object, get_default_impl::std::unordered_map> >::__register_class("ObjectContainer");
     peer::MatrixSpace< MatrixSpace<sphere_type, shell_id_type> >::__register_class("ShellContainer");
     peer::MatrixSpace< MatrixSpace<particle_type, particle_id_type> >::__register_class("ParticleContainer");
 
