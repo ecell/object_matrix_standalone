@@ -154,7 +154,7 @@ public:
         if (retval == NULL)
             return NULL;
         std::memmove(PyArray_DATA(retval), &pos[0],
-                sizeof(typename Timpl_::length_type));
+                sizeof(typename Timpl_::length_type) * boost::size(pos));
         return retval;
     }
 
