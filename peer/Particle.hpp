@@ -145,12 +145,17 @@ public:
     {
         typename Timpl_::position_type const& pos(self->impl_.position());
         const npy_intp dims[1] = { boost::size(pos) };
-        return PyArray_New(&PyArray_Type, 1,
+        PyObject* retval = PyArray_New(&PyArray_Type, 1,
                 const_cast<npy_intp*>(dims),
                 util::get_numpy_typecode<typename Timpl_::length_type>::value,
                 NULL,
-                const_cast<typename Timpl_::length_type*>(reinterpret_cast<typename Timpl_::length_type const*>(&pos)),
+                NULL,
                 0, NPY_CARRAY, NULL);
+        if (retval == NULL)
+            return NULL;
+        std::memmove(PyArray_DATA(retval), &pos[0],
+                sizeof(typename Timpl_::length_type));
+        return retval;
     }
 
     static int set_position(ParticleWrapper* self, PyObject* val, void *)
