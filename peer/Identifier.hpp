@@ -13,6 +13,7 @@
 #include <boost/python.hpp>
 #include <boost/python/scope.hpp>
 #include <boost/python/object/function.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
 
 #include <unistd.h>
@@ -21,24 +22,6 @@
 #include "pickle_support.hpp"
 
 namespace peer {
-
-static std::string dump_hex(void const* obj, std::size_t sz)
-{
-    unsigned char const *p = reinterpret_cast<unsigned char const*>(obj);
-    unsigned char const* e = p + sz;
-    std::stringstream s;
-    s.flags(std::ios::hex | std::ios::right);
-    s.fill('0');
-
-    while (p < e)
-    {
-        s.width(2);
-        s << (int)*p;
-        ++p;
-    }
-
-    return s.str();
-}
 
 template<typename Timpl_>
 class IdentifierWrapper
@@ -101,16 +84,16 @@ public:
     static PyObject* __new__(PyTypeObject* klass, PyObject* arg, PyObject* kwarg)
     try
     {
-        if (!PySequence_Check(arg) || PySequence_Size(arg) != 2)
+        if (!PyTuple_Check(arg) || PyTuple_Size(arg) != 2)
         {
-            PyErr_SetString(PyExc_TypeError, "argument 1 must be a sequence of size 2");
+            PyErr_SetString(PyExc_TypeError, "the number of arguments must be 2");
             return NULL;
         }
 
         return create(Timpl_(
             typename Timpl_::value_type(
-                boost::python::extract<typename Timpl_::lot_type>(PySequence_GetItem(arg, 0)),
-                boost::python::extract<typename Timpl_::serial_type>(PySequence_GetItem(arg, 1))
+                boost::python::extract<typename Timpl_::lot_type>(PyTuple_GetItem(arg, 0)),
+                boost::python::extract<typename Timpl_::serial_type>(PyTuple_GetItem(arg, 1))
             )));
     }
     catch (boost::python::error_already_set const&)
@@ -130,7 +113,7 @@ public:
 
     static PyObject* __str__(IdentifierWrapper* self)
     {
-        std::string retval(std::string(reinterpret_cast<PyObject*>(self)->ob_type->tp_name) + ":" + dump_hex(&self->impl_, sizeof(self->impl_)));
+        std::string retval(boost::lexical_cast<std::string>(self->impl_));
         return PyString_FromStringAndSize(retval.data(), retval.size());
     }
 

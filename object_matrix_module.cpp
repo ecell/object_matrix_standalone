@@ -32,6 +32,7 @@
 #include "peer/ReactionRule.hpp"
 #include "peer/set_indexing_suite.hpp"
 #include "peer/SpeciesType.hpp"
+#include "peer/Particle.hpp"
 #include "peer/tuple_converters.hpp"
 #include "peer/utils.hpp"
 
@@ -187,7 +188,7 @@ void register_id_generator(char const* class_name)
         .def("__call__", &SerialIDGenerator<T_>::operator())
         ;
 }
-
+/*
 struct particle_to_python_converter
 {
     typedef particle_type native_type;
@@ -199,16 +200,16 @@ struct particle_to_python_converter
                 boost::make_tuple(p.position(), p.radius(), p.sid())).ptr());
     }
 };
-
+*/
 struct python_to_particle_converter 
 {
     static void* convertible(PyObject* pyo)
     {
-        if (!PyTuple_Check(pyo))
+        if (!PySequence_Check(pyo))
         {
             return 0;
         }
-        if (PyTuple_Size(pyo) != 3)
+        if (PySequence_Size(pyo) != 3)
         {
             return 0;
         }
@@ -219,9 +220,9 @@ struct python_to_particle_converter
                           boost::python::converter::rvalue_from_python_stage1_data* data)
     {
         PyObject* items[] = {
-            PyTuple_GetItem(pyo, 0),
-            PyTuple_GetItem(pyo, 1),
-            PyTuple_GetItem(pyo, 2)
+            PySequence_GetItem(pyo, 0),
+            PySequence_GetItem(pyo, 1),
+            PySequence_GetItem(pyo, 2)
         };
         void* storage(reinterpret_cast<
             boost::python::converter::rvalue_from_python_storage<particle_type>*>(data)->storage.bytes);
@@ -346,8 +347,12 @@ BOOST_PYTHON_MODULE(object_matrix)
         boost::tuple<sphere_type::position_type,
                 length_type, species_id_type> >();
 
+    /*
     to_python_converter<particle_type, particle_to_python_converter>();
+    */
     peer::util::to_native_converter<particle_type, python_to_particle_converter>();
+
+    peer::ParticleWrapper<particle_type>::__register_class("Particle");
 
     peer::util::register_tuple_converter<
         boost::tuple<sphere_type::position_type, length_type> >();
@@ -416,6 +421,8 @@ BOOST_PYTHON_MODULE(object_matrix)
     typedef World<world_traits_type> CyclicWorld;
     typedef CyclicWorld::transaction_type transaction_type;
 
+    peer::util::register_tuple_converter<CyclicWorld::particle_id_pair>();
+
     peer::util::GeneratorIteratorWrapper<ptr_generator<CyclicWorld::particle_id_pair_generator> >::__register_class("ParticleIDPairGenerator");
 
     class_<Transaction<world_traits_type>, boost::noncopyable>("Transaction", no_init)
@@ -436,6 +443,7 @@ BOOST_PYTHON_MODULE(object_matrix)
         .def("get_particle", &transaction_type::get_particle)
         .def("create_transaction", &transaction_type::create_transaction,
                 return_internal_reference<>())
+        .def("rollback", &transaction_type::rollback)
         .def("__iter__", &transaction_type::get_particles,
                 return_value_policy<return_by_value>())
         ;

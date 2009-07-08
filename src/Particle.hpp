@@ -1,6 +1,14 @@
 #ifndef PARTICLE_HPP
 #define PARTICLE_HPP
 
+#include <ostream>
+#if defined(HAVE_TR1_FUNCTIONAL)
+#include <tr1/functional>
+#elif defined(HAVE_STD_HASH)
+#include <functional>
+#elif defined(HAVE_BOOST_FUNCTIONAL_HASH_HPP)
+#include <boost/functional/hash.hpp>
+#endif
 #include "Sphere.hpp"
 
 template<typename T_, typename Tsid_>
@@ -70,5 +78,41 @@ private:
     sphere_type sphere_;
     species_id_type species_id_;
 };
+
+template<typename Tstrm_, typename Ttraits_, typename T_, typename Tsid_>
+inline std::basic_ostream<Tstrm_, Ttraits_>& operator<<(std::basic_ostream<Tstrm_, Ttraits_>& strm, const Particle<T_, Tsid_>& v)
+{
+    strm << "Particle(" << v.as_sphere() << ", " << v.sid() << ")";
+    return strm;
+}
+
+#if defined(HAVE_TR1_FUNCTIONAL)
+namespace std { namespace tr1 {
+#elif defined(HAVE_STD_HASH)
+namespace std {
+#elif defined(HAVE_BOOST_FUNCTIONAL_HASH_HPP)
+namespace boost {
+#endif
+
+template<typename T_, typename Tsid_>
+struct hash<Particle<T_, Tsid_> >
+{
+    typedef Particle<T_, Tsid_> argument_type;
+
+    std::size_t operator()(argument_type const& val)
+    {
+        return hash<typename argument_type::position_type>()(val.position()) ^
+            hash<typename argument_type::length_type>()(val.radius()) ^
+            hash<typename argument_type::species_id_type>()(val.sid());
+    }
+};
+
+#if defined(HAVE_TR1_FUNCTIONAL)
+} } // namespace std::tr1
+#elif defined(HAVE_STD_HASH)
+} // namespace std
+#elif defined(HAVE_BOOST_FUNCTIONAL_HASH_HPP)
+} // namespace boost
+#endif
 
 #endif /* PARTICLE_HPP */

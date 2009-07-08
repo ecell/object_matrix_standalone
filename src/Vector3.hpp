@@ -12,6 +12,14 @@
 #include <boost/range/begin.hpp>
 #include <boost/range/end.hpp>
 
+#if defined(HAVE_TR1_FUNCTIONAL)
+#include <tr1/functional>
+#elif defined(HAVE_STD_HASH)
+#include <functional>
+#elif defined(HAVE_BOOST_FUNCTIONAL_HASH_HPP)
+#include <boost/functional/hash.hpp>
+#endif
+
 #include "array_traits.hpp"
 
 template<typename T_>
@@ -290,9 +298,9 @@ inline Vector3<T_> operator*(Vector3<T_> const& lhs, T_ const& rhs)
     return multiply(lhs, rhs);
 }
 
-template<typename Tstrm_, typename T_>
-inline std::basic_ostream<Tstrm_>&
-operator<<(std::basic_ostream< Tstrm_ >& strm, const Vector3< T_ >& v)
+template<typename Tstrm_, typename Ttraits_, typename T_>
+inline std::basic_ostream<Tstrm_, Ttraits_>&
+operator<<(std::basic_ostream<Tstrm_, Ttraits_>& strm, const Vector3<T_>& v)
 {
     strm << "(" << v[0] <<  ", " << v[1] <<  ", " << v[2] << ")";
     return strm;
@@ -308,5 +316,34 @@ namespace detail {
         typedef T_ type;
     };
 }
+
+#if defined(HAVE_TR1_FUNCTIONAL)
+namespace std { namespace tr1 {
+#elif defined(HAVE_STD_HASH)
+namespace std {
+#elif defined(HAVE_BOOST_FUNCTIONAL_HASH_HPP)
+namespace boost {
+#endif
+
+template<typename T_>
+struct hash<Vector3<T_> >
+{
+    typedef Vector3<T_> argument_type;
+
+    std::size_t operator()(argument_type const& val)
+    {
+        return hash<typename argument_type::value_type>()(val[0]) ^
+            hash<typename argument_type::value_type>()(val[1]) ^
+            hash<typename argument_type::value_type>()(val[2]);
+    }
+};
+
+#if defined(HAVE_TR1_FUNCTIONAL)
+} } // namespace std::tr1
+#elif defined(HAVE_STD_HASH)
+} // namespace std
+#elif defined(HAVE_BOOST_FUNCTIONAL_HASH_HPP)
+} // namespace boost
+#endif
 
 #endif /* VECTOR3_HPP */
