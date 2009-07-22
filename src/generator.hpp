@@ -83,6 +83,11 @@ struct abstract_limited_generator: public abstract_generator<Tretval_>
 {
     virtual ~abstract_limited_generator() {}
 
+    virtual std::size_t count() const
+    {
+        throw std::domain_error("indetermined");
+    }
+
     virtual bool valid() const = 0;
 
     virtual Tretval_ operator()() = 0;
@@ -95,6 +100,11 @@ bool valid(abstract_limited_generator<Tretval_> const& gen)
     return gen.valid();
 }
 
+template<typename Tretval_>
+std::size_t count(abstract_limited_generator<Tretval_> const& gen)
+{
+    return gen.count();
+}
 
 template<typename Timpl_, typename Tholder_ = boost::shared_ptr<Timpl_> >
 class ptr_generator
@@ -114,6 +124,11 @@ public:
     bool valid() const
     {
         return ::valid(*impl_);
+    }
+
+    std::size_t count() const
+    {
+        return ::count(*impl_);
     }
 
     result_type operator()()
@@ -140,6 +155,11 @@ bool valid(ptr_generator<Timpl_> const& gen)
     return gen.valid();
 }
 
+template<typename Timpl_>
+bool count(ptr_generator<Timpl_> const& gen)
+{
+    return gen.count();
+}
 
 template<typename Trange_, typename Titer_ = typename boost::range_iterator<Trange_>::type, typename Tresult_ = typename boost::iterator_reference<Titer_>::type>
 class range_generator: public abstract_limited_generator<Tresult_>
@@ -168,7 +188,7 @@ public:
         return *i_++;
     }
 
-    typename boost::range_size<Trange_>::type count()
+    virtual std::size_t count() const
     {
         return boost::size(std::make_pair(i_, end_));
     }
@@ -208,12 +228,6 @@ inline abstract_limited_generator<Tresult_>*
 make_range_generator(T_ const& range)
 {
     return new range_generator<T_, typename boost::range_const_iterator<T_>::type, Tresult_>(range);
-}
-
-template<typename Trange_>
-typename boost::range_size<Trange_>::type count(range_generator<Trange_> const& gen)
-{
-    return gen.size();
 }
 
 template<typename Tgen_>

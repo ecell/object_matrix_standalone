@@ -2,6 +2,7 @@
 #define _SORTED_LIST
 
 #include <algorithm>
+#include <functional>
 #include "utils.hpp"
 #include <boost/range/size.hpp>
 #include <boost/range/begin.hpp>
@@ -126,26 +127,32 @@ public:
 
     iterator find(value_type const& v)
     {
-        return std::equal_range(begin(), end(), v,
-                static_cast<TweakOrdering_ const&>(ord_)).first;
+        iterator i(std::lower_bound(begin(), end(), v,
+                static_cast<TweakOrdering_ const&>(ord_)));
+        return i != end() && *i == v ? i: end();
     }
 
     const_iterator find(value_type const& v) const
     {
-        return std::equal_range(begin(), end(), v,
-                static_cast<TweakOrdering_ const&>(ord_)).first;
+        const_iterator i(std::lower_bound(begin(), end(), v,
+                static_cast<TweakOrdering_ const&>(ord_)));
+        return i != end() && *i == v ? i: end();
     }
 
     reverse_iterator rfind(value_type const& v)
     {
-        return std::equal_range(rbegin(), rend(), v,
-                static_cast<TweakOrdering_ const&>(ord_)).first;
+        reverse_iterator i(std::upper_bound(rbegin(), rend(), v,
+                compose_binary(std::logical_not<bool>(),
+                    static_cast<TweakOrdering_ const&>(ord_))));
+        return i != rend() && *i == v ? i: rend();
     }
 
     const_reverse_iterator rfind(value_type const& v) const
     {
-        return std::equal_range(rbegin(), rend(), v,
-                static_cast<TweakOrdering_ const&>(ord_)).first;
+        const_reverse_iterator i(std::upper_bound(rbegin(), rend(), v,
+                compose_binary(std::logical_not<bool>(),
+                    static_cast<TweakOrdering_ const&>(ord_))));
+        return i != rend() && *i == v ? i: rend();
     }
 
     size_type erase(value_type const& v)
