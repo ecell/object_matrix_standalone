@@ -35,6 +35,7 @@ public:
         string_map_type::const_iterator i(attrs_.find(name));
         if (i == attrs_.end())
             throw not_found((boost::format("key %s not found") % name).str());
+        return (*i).second;
     }
 
     std::string& operator[](std::string const& name)
