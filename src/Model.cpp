@@ -25,14 +25,14 @@ Model::~Model()
     delete network_rules_;
 }
 
-SpeciesType* Model::new_species_type()
+Model::species_type_type& Model::new_species_type()
 {
     SpeciesType* retval = new SpeciesType(species_type_id_generator_());
     species_type_map_.insert(std::make_pair(retval->id(), retval));
-    return retval;
+    return *retval;
 }
 
-SpeciesType* Model::get_species_type_by_id(SpeciesTypeID const& id) const
+Model::species_type_type& Model::get_species_type(SpeciesTypeID const& id) const
 {
     species_type_map_type::const_iterator i(species_type_map_.find(id));
     if (species_type_map_.end() == i)
@@ -40,7 +40,7 @@ SpeciesType* Model::get_species_type_by_id(SpeciesTypeID const& id) const
         throw not_found(boost::lexical_cast<std::string>(id));
     }
 
-    return (*i).second;
+    return *(*i).second;
 }
 
 Model::species_type_range Model::get_species_types() const

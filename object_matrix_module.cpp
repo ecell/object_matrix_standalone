@@ -383,7 +383,7 @@ BOOST_PYTHON_MODULE(object_matrix)
                 return_value_policy<reference_existing_object>()))
         .def("new_species_type", &Model::new_species_type,
                 return_value_policy<reference_existing_object>())
-        .def("get_species_type_by_id", &Model::get_species_type_by_id,
+        .def("get_species_type", &Model::get_species_type,
                 return_value_policy<reference_existing_object>())
         ;
 
