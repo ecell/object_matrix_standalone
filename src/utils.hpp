@@ -381,6 +381,22 @@ inline int memberwise_compare(Tlhs_ const& lhs, Trhs_ const& rhs)
     return 0;
 }
 
+template<typename Trange_, typename Tfun_>
+struct get_transformed_range
+{
+    typedef typename boost::range_iterator<Trange_>::type iterator_type;
+    typedef boost::transform_iterator<Tfun_, iterator_type> transform_iterator_type;
+    typedef boost::iterator_range<transform_iterator_type> type;
+};
+
+template<typename Trange_, typename Tfun_>
+struct get_transformed_range<const Trange_, Tfun_>
+{
+    typedef typename boost::range_const_iterator<Trange_>::type iterator_type;
+    typedef boost::transform_iterator<Tfun_, iterator_type> transform_iterator_type;
+    typedef boost::iterator_range<transform_iterator_type> type;
+};
+
 template<typename T_>
 struct get_select_first_iterator
 {
@@ -412,24 +428,66 @@ make_select_second_iterator(T_ const& iter)
         select_second<typename T_::value_type>());
 }
 
+namespace detail {
+
 template<typename Trange_>
-inline boost::iterator_range<typename get_select_first_iterator<
-    typename boost::range_iterator<Trange_>::type >::type>
+struct select_first_range_impl
+{
+    typedef boost::iterator_range<typename get_select_first_iterator<
+        typename boost::range_iterator<Trange_>::type >::type> type;
+};
+
+template<typename Trange_>
+struct select_second_range_impl
+{
+    typedef boost::iterator_range<typename get_select_second_iterator<
+        typename boost::range_iterator<Trange_>::type >::type> type;
+};
+
+template<typename Trange_>
+struct select_first_range_impl<const Trange_>
+{
+    typedef boost::iterator_range<typename get_select_first_iterator<
+        typename boost::range_const_iterator<Trange_>::type >::type> type;
+};
+
+template<typename Trange_>
+struct select_second_range_impl<const Trange_>
+{
+    typedef boost::iterator_range<typename get_select_second_iterator<
+        typename boost::range_const_iterator<Trange_>::type >::type> type;
+};
+
+} // namespace detail
+
+template<typename Trange_>
+struct select_first_range: public detail::select_first_range_impl<Trange_>::type
+{
+    select_first_range(Trange_ const& range)
+        : detail::select_first_range_impl<Trange_>::type(
+                boost::begin(range), boost::end(range)) {}
+};
+
+template<typename Trange_>
+struct select_second_range: public detail::select_second_range_impl<Trange_>::type
+{
+    select_second_range(Trange_ const& range)
+        : detail::select_second_range_impl<Trange_>::type(
+                boost::begin(range), boost::end(range)) {}
+};
+
+template<typename Trange_>
+inline select_first_range<Trange_>
 make_select_first_range(Trange_ const& range)
 {
-    return boost::iterator_range<typename get_select_first_iterator<
-        typename boost::range_iterator<Trange_>::type >::type>(
-            boost::begin(range), boost::end(range));
+    return select_first_range<Trange_>(range);
 }
 
 template<typename Trange_>
-inline boost::iterator_range<typename get_select_second_iterator<
-    typename boost::range_iterator<Trange_>::type >::type>
+inline select_second_range<Trange_>
 make_select_second_range(Trange_ const& range)
 {
-    return boost::iterator_range<typename get_select_second_iterator<
-        typename boost::range_iterator<Trange_>::type >::type>(
-            boost::begin(range), boost::end(range));
+    return select_second_range<Trange_>(range);
 }
 
 template<typename Trange_>
