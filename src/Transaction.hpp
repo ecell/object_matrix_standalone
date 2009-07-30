@@ -15,6 +15,7 @@ class Transaction: public ParticleContainer<Ttraits_>
 public:
     typedef Ttraits_ traits_type;
     typedef typename traits_type::particle_type particle_type;
+    typedef typename traits_type::sphere_type sphere_type;
     typedef typename traits_type::species_type species_type;
     typedef typename traits_type::species_id_type species_id_type;
     typedef typename traits_type::position_type position_type;
@@ -22,6 +23,7 @@ public:
     typedef typename traits_type::size_type size_type;
     typedef std::pair<const particle_id_type, particle_type> particle_id_pair;
     typedef abstract_limited_generator<particle_id_pair> particle_id_pair_generator;
+    typedef unassignable_adapter<particle_id_pair, get_default_impl::std::vector> particle_id_pair_list;
 
     virtual ~Transaction() {}
 
@@ -41,6 +43,7 @@ public:
     typedef Tpc_ particle_container_type;
     typedef typename particle_container_type::traits_type traits_type;
     typedef typename traits_type::particle_type particle_type;
+    typedef typename traits_type::sphere_type sphere_type;
     typedef typename traits_type::species_type species_type;
     typedef typename traits_type::species_id_type species_id_type;
     typedef typename traits_type::position_type position_type;
@@ -48,6 +51,7 @@ public:
     typedef typename traits_type::size_type size_type;
     typedef std::pair<const particle_id_type, particle_type> particle_id_pair;
     typedef abstract_limited_generator<particle_id_pair> particle_id_pair_generator;
+    typedef unassignable_adapter<particle_id_pair, get_default_impl::std::vector> particle_id_pair_list;
 
 private:
     typedef std::map<typename particle_id_pair::first_type,
@@ -109,7 +113,17 @@ public:
         return pc_.get_particle(id);
     }
 
-    virtual bool check_overlap(particle_id_pair const& s) const
+    virtual particle_id_pair_list* check_overlap(particle_id_pair const& s) const
+    {
+        return pc_.check_overlap(s);
+    }
+
+    virtual particle_id_pair_list* check_overlap(sphere_type const& s, particle_id_type const& ignore) const
+    {
+        return pc_.check_overlap(s, ignore);
+    }
+
+    virtual particle_id_pair_list* check_overlap(sphere_type const& s) const
     {
         return pc_.check_overlap(s);
     }

@@ -9,6 +9,7 @@
 #include <boost/tuple/tuple.hpp>
 #include <boost/python.hpp>
 #include <boost/python/return_by_value.hpp>
+#include <boost/python/manage_new_object.hpp>
 #include <boost/python/return_internal_reference.hpp>
 
 #include "Defs.hpp"
@@ -305,9 +306,14 @@ static void register_world_class(char const* name)
             return_internal_reference<>())
         .def("distance", &world_type::distance)
         .def("distance_sq", &world_type::distance_sq)
-        .def("apply_boundary", &world_type::apply_boundary)
+        .def("apply_boundary", (typename world_type::position_type(world_type::*)(typename world_type::position_type const&) const)&world_type::apply_boundary)
+        .def("apply_boundary", (typename world_type::length_type(world_type::*)(typename world_type::length_type const&) const)&world_type::apply_boundary)
+        .def("cyclic_transpose", (typename world_type::position_type(world_type::*)(typename world_type::position_type const&, typename world_type::position_type const&) const)&world_type::cyclic_transpose)
+        .def("cyclic_transpose", (typename world_type::length_type(world_type::*)(typename world_type::length_type const&, typename world_type::length_type const&) const)&world_type::cyclic_transpose)
         .def("new_particle", &world_type::new_particle)
-        .def("check_overlap", (bool(world_type::*)(typename world_type::particle_id_pair const&) const)&world_type::check_overlap)
+        .def("check_overlap", (typename world_type::particle_id_pair_list*(world_type::*)(typename world_type::particle_id_pair const&) const)&world_type::check_overlap, return_value_policy<manage_new_object>())
+        .def("check_overlap", (typename world_type::particle_id_pair_list*(world_type::*)(typename world_type::sphere_type const&, typename world_type::particle_id_type const&) const)&world_type::check_overlap, return_value_policy<manage_new_object>())
+        .def("check_overlap", (typename world_type::particle_id_pair_list*(world_type::*)(typename world_type::sphere_type const&) const)&world_type::check_overlap, return_value_policy<manage_new_object>())
         .def("update_particle", &world_type::update_particle)
         .def("remove_particle", &world_type::remove_particle)
         .def("get_particle", &world_type::get_particle)
@@ -441,10 +447,12 @@ BOOST_PYTHON_MODULE(object_matrix)
             make_function(&transaction_type::get_modified_particles,
                 return_value_policy<return_by_value>()))
         .def("new_particle", &transaction_type::new_particle)
-        .def("check_overlap", (bool(transaction_type::*)(transaction_type::particle_id_pair const&) const)&transaction_type::check_overlap)
         .def("update_particle", &transaction_type::update_particle)
         .def("remove_particle", &transaction_type::remove_particle)
         .def("get_particle", &transaction_type::get_particle)
+        .def("check_overlap", (transaction_type::particle_id_pair_list*(transaction_type::*)(transaction_type::particle_id_pair const&) const)&transaction_type::check_overlap, return_value_policy<manage_new_object>())
+        .def("check_overlap", (transaction_type::particle_id_pair_list*(transaction_type::*)(transaction_type::sphere_type const&, transaction_type::particle_id_type const&) const)&transaction_type::check_overlap, return_value_policy<manage_new_object>())
+        .def("check_overlap", (transaction_type::particle_id_pair_list*(transaction_type::*)(transaction_type::sphere_type const&) const)&transaction_type::check_overlap, return_value_policy<manage_new_object>())
         .def("create_transaction", &transaction_type::create_transaction,
                 return_internal_reference<>())
         .def("rollback", &transaction_type::rollback)

@@ -10,6 +10,7 @@
 #include <boost/range/const_iterator.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <boost/type_traits/is_same.hpp>
+#include <boost/type_traits/is_convertible.hpp>
 #include <boost/iterator/iterator_traits.hpp>
 #include <boost/iterator/transform_iterator.hpp>
 #include <algorithm>
@@ -169,6 +170,85 @@ namespace detail
         Tfun1_ f1_;
         Tfun2_ f2_;
     };
+
+    template < typename Tderived_, typename Tfun1_, typename Tfun2_,
+               typename Tretval_ = typename Tfun1_::result_type >
+    struct binary_compose_impl
+    {
+        typedef typename Tfun2_::first_argument_type first_argument_type;
+        typedef typename Tfun2_::second_argument_type second_argument_type;
+        typedef typename Tfun1_::result_type result_type;
+
+        binary_compose_impl( Tfun1_ const& f1, Tfun2_ const& f2 )
+            : f1_( f1 ), f2_( f2 ) {}
+
+        result_type operator()( first_argument_type const& v1,
+                                second_argument_type const& v2 ) const
+        {
+            return f1_( f2_( v1, v2 ) );
+        }
+
+        result_type operator()( first_argument_type const& v1,
+                                second_argument_type const& v2 )
+        {
+            return f1_( f2_( v1, v2 ) );
+        }
+
+        result_type operator()( first_argument_type& v1,
+                                second_argument_type& v2 ) const
+        {
+            return f1_( f2_( v1, v2 ) );
+        }
+
+        result_type operator()( first_argument_type& v1,
+                                second_argument_type& v2 )
+        {
+            return f1_( f2_( v1, v2 ) );
+        }
+
+    private:
+        Tfun1_ f1_;
+        Tfun2_ f2_;
+    };
+
+    template < typename Tderived_, typename Tfun1_, typename Tfun2_ >
+    struct binary_compose_impl< Tderived_, Tfun1_, Tfun2_, void >
+    {
+        typedef typename Tfun2_::first_argument_type first_argument_type;
+        typedef typename Tfun2_::second_argument_type second_argument_type;
+        typedef void result_type;
+
+        binary_compose_impl( Tfun1_ const& f1, Tfun2_ const& f2 )
+            : f1_( f1 ), f2_( f2 ) {}
+
+        void operator()( first_argument_type const& v1,
+                                second_argument_type const& v2 ) const
+        {
+            f1_( f2_( v1, v2 ) );
+        }
+
+        void operator()( first_argument_type const& v1,
+                                second_argument_type const& v2 )
+        {
+            f1_( f2_( v1, v2 ) );
+        }
+
+        void operator()( first_argument_type& v1,
+                                second_argument_type& v2 ) const
+        {
+            f1_( f2_( v1, v2 ) );
+        }
+
+        void operator()( first_argument_type& v1,
+                                second_argument_type& v2 )
+        {
+            f1_( f2_( v1, v2 ) );
+        }
+
+    private:
+        Tfun1_ f1_;
+        Tfun2_ f2_;
+    };
 } // namespace detail
 
 template < typename Tfun1_, typename Tfun2_ >
@@ -188,6 +268,23 @@ compose_unary( Tfun1_ const& f1, Tfun2_ const& f2 )
     return unary_compose< Tfun1_, Tfun2_ >( f1, f2 );
 }
 
+template < typename Tfun1_, typename Tfun2_ >
+struct binary_compose
+    : public detail::binary_compose_impl<binary_compose< Tfun1_, Tfun2_ >,
+                                              Tfun1_, Tfun2_ >
+{
+public:
+    binary_compose( Tfun1_ const& f1, Tfun2_ const& f2 )
+        : detail::binary_compose_impl< binary_compose, Tfun1_, Tfun2_ >( f1, f2 ) {}
+};
+
+template < typename Tfun1_, typename Tfun2_ >
+inline binary_compose< Tfun1_, Tfun2_ >
+compose_binary( Tfun1_ const& f1, Tfun2_ const& f2 )
+{
+    return binary_compose< Tfun1_, Tfun2_ >( f1, f2 );
+}
+
 template < typename T_ >
 struct delete_ptr
 {
@@ -199,6 +296,66 @@ struct delete_ptr
         delete ptr;
     }
 };
+
+template<typename T_, typename Targ_>
+struct reinterpret_caster
+{
+    T_ operator()(Targ_ const& v)
+    {
+        return reinterpret_cast<T_>(v);
+    }
+};
+
+template<typename T_, typename Targ_>
+struct reinterpret_caster<T_&, Targ_&>
+{
+    T_& operator()(Targ_& v)
+    {
+        return reinterpret_cast<T_&>(v);
+    }
+};
+
+template<typename T_, typename Targ_>
+inline T_ reinterpret_cast_wrapper(Targ_ const& v, typename boost::disable_if<boost::is_reference<T_> >::type* = 0)
+{
+    return reinterpret_caster<T_, Targ_>()(v);
+}
+
+template<typename T_, typename Targ_>
+inline T_& reinterpret_cast_wrapper(Targ_& v)
+{
+    return reinterpret_caster<T_&, Targ_&>()(v);
+}
+
+template<typename T_, typename Targ_>
+struct dynamic_caster
+{
+    T_ operator()(Targ_ const& v)
+    {
+        return dynamic_cast<T_>(v);
+    }
+};
+
+template<typename T_, typename Targ_>
+struct dynamic_caster<T_&, Targ_&>
+{
+    T_& operator()(Targ_& v)
+    {
+        return dynamic_cast<T_&>(v);
+    }
+};
+
+template<typename T_, typename Targ_>
+inline T_ dynamic_cast_wrapper(Targ_ const& v, typename boost::disable_if<boost::is_reference<T_> >::type* = 0)
+{
+    return dynamic_caster<T_, Targ_>()(v);
+}
+
+template<typename T_, typename Targ_>
+inline T_& dynamic_cast_wrapper(Targ_& v)
+{
+    return dynamic_caster<T_&, Targ_&>()(v);
+}
 
 template<typename Tlhs_, typename Trhs_>
 inline int memberwise_compare(Tlhs_ const& lhs, Trhs_ const& rhs)
