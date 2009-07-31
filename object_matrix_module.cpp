@@ -318,7 +318,7 @@ static void register_world_class(char const* name)
         .def("remove_particle", &world_type::remove_particle)
         .def("get_particle", &world_type::get_particle)
         .def("create_transaction", &world_type::create_transaction,
-                return_internal_reference<>())
+                return_value_policy<manage_new_object>())
         .def("__iter__", &world_type::get_particles,
                 return_value_policy<return_by_value>())
         ;
@@ -454,7 +454,7 @@ BOOST_PYTHON_MODULE(object_matrix)
         .def("check_overlap", (transaction_type::particle_id_pair_list*(transaction_type::*)(transaction_type::sphere_type const&, transaction_type::particle_id_type const&) const)&transaction_type::check_overlap, return_value_policy<manage_new_object>())
         .def("check_overlap", (transaction_type::particle_id_pair_list*(transaction_type::*)(transaction_type::sphere_type const&) const)&transaction_type::check_overlap, return_value_policy<manage_new_object>())
         .def("create_transaction", &transaction_type::create_transaction,
-                return_internal_reference<>())
+                return_value_policy<manage_new_object>())
         .def("rollback", &transaction_type::rollback)
         .def("__iter__", &transaction_type::get_particles,
                 return_value_policy<return_by_value>())
