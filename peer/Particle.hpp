@@ -107,7 +107,7 @@ public:
                 || set_sid(reinterpret_cast<ParticleWrapper*>(retval), 
                         PyTuple_GetItem(arg, 2), 0))
             {
-                delete retval;
+                ParticleWrapper::operator delete(retval);
                 return NULL;
             }
             break;
@@ -163,13 +163,13 @@ public:
         if (!PySequence_Check(val))
         {
             PyErr_SetString(PyExc_TypeError, "argument must be a sequence");
-            return NULL;
+            return -1;
         }
         
         if (PySequence_Size(val) != 3)
         {
             PyErr_SetString(PyExc_ValueError, "argument must be a sequence of 3 elements");
-            return NULL;
+            return -1;
         }
 
         const typename Timpl_::position_type tmp(
@@ -441,7 +441,8 @@ PyTypeObject ParticleWrapper<Timpl_>::__class__ = {
     0,                  /* tp_dictoffset */
     0,                  /* tp_init */
     0,                  /* tp_alloc */
-    ParticleWrapper::__new__  /*tp_new */
+    ParticleWrapper::__new__,  /*tp_new */
+    PyObject_Del        /* tp_free */
 };
 
 } //namespace peer
