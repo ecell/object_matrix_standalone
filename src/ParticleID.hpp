@@ -30,7 +30,7 @@ namespace boost {
 template<>
 struct hash<ParticleID>
 {
-    std::size_t operator()(ParticleID const& val)
+    std::size_t operator()(ParticleID const& val) const
     {
         return static_cast<std::size_t>(val().first ^ val().second);
     }
