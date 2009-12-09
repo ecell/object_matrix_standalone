@@ -3,7 +3,7 @@
 
 #include <algorithm>
 #include <functional>
-#include "utils.hpp"
+#include "utils/reference_or_instance.hpp"
 #include <boost/range/size.hpp>
 #include <boost/range/begin.hpp>
 #include <boost/range/end.hpp>

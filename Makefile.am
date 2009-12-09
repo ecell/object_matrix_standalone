@@ -27,33 +27,45 @@ EXTRA_DIST = \
 	peer/numpy/pyarray_backed_allocator.hpp \
 	peer/numpy/type_mappings.hpp \
 	peer/numpy/wrapped_multi_array.hpp \
-	BasicNetworkRulesImpl.cpp \
-	NetworkRules.cpp \
-	utils.cpp \
-	BasicNetworkRulesImpl.hpp \
-	Defs.hpp \
-	Identifier.hpp \
-	MatrixSpace.hpp \
-	Model.hpp \
-	NetworkRules.hpp \
-	Particle.hpp \
-	ParticleID.hpp \
-	ReactionRule.hpp \
-	SerialIDGenerator.hpp \
-	Shell.hpp \
-	ShellID.hpp \
-	SpeciesInfo.hpp \
-	SpeciesTypeID.hpp \
-	Sphere.hpp \
-	Vector3.hpp \
-	array_helper.hpp \
-	array_traits.hpp \
-	exceptions.hpp \
-	filters.hpp \
-	generator.hpp \
-	get_mapper_mf.hpp \
-	utils.hpp \
-	vmap.hpp \
+	src/BasicNetworkRulesImpl.cpp \
+	src/NetworkRules.cpp \
+	src/utils.cpp \
+	src/BasicNetworkRulesImpl.hpp \
+	src/Defs.hpp \
+	src/Identifier.hpp \
+	src/MatrixSpace.hpp \
+	src/Model.hpp \
+	src/NetworkRules.hpp \
+	src/Particle.hpp \
+	src/ParticleID.hpp \
+	src/ReactionRule.hpp \
+	src/SerialIDGenerator.hpp \
+	src/Shell.hpp \
+	src/ShellID.hpp \
+	src/SpeciesInfo.hpp \
+	src/SpeciesTypeID.hpp \
+	src/Sphere.hpp \
+	src/Vector3.hpp \
+	src/array_helper.hpp \
+	src/array_traits.hpp \
+	src/exceptions.hpp \
+	src/filters.hpp \
+	src/generator.hpp \
+	src/get_mapper_mf.hpp \
+	src/utils.hpp \
+	src/utils/array_helper.hpp \
+	src/utils/array_traits.hpp \
+	src/utils/fun_composition.hpp \
+	src/utils/fun_wrappers.hpp \
+	src/utils/get_default_impl.hpp \
+	src/utils/get_mapper_mf.hpp \
+	src/utils/memberwise_compare.hpp \
+	src/utils/pair.hpp \
+	src/utils/pointer_preds.hpp \
+	src/utils/range.hpp \
+	src/utils/range_support.hpp \
+	src/utils/reference_or_instance.hpp \
+	src/vmap.hpp \
 	object_matrix_module.cpp
 
 all-local: object_matrix.so

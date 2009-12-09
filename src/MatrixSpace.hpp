@@ -10,9 +10,10 @@
 #include <boost/type_traits/add_const.hpp>
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/list/at.hpp>
+#include <boost/range/size.hpp>
 #include "Vector3.hpp"
-#include "array_helper.hpp"
-#include "utils.hpp"
+#include "utils/array_helper.hpp"
+#include "utils/get_default_impl.hpp"
 
 template<typename Tobj_, typename Tkey_,
         template<typename, typename> class MFget_mapper_ =
@@ -660,5 +661,16 @@ operator+=(
     return rhs;
 }
 
+
+namespace boost {
+
+template<typename T_, typename Tkey_,
+        template<typename, typename> class MFget_mapper_>
+inline typename boost::range_difference<MatrixSpace<T_, Tkey_, MFget_mapper_> >::type size(MatrixSpace<T_, Tkey_, MFget_mapper_> const& that)
+{
+    return that.size();
+}
+
+} // namespace boost
 
 #endif /* MATRIX_SPACE_HPP */
